@@ -1,10 +1,76 @@
-# Gemini Fullstack LangGraph Quickstart
+# 🔍 Gemini Fullstack LangGraph – Enhanced Fork
 
-This project demonstrates a fullstack application using a React frontend and a LangGraph-powered backend agent. The agent is designed to perform comprehensive research on a user's query by dynamically generating search terms, querying the web using Google Search, reflecting on the results to identify knowledge gaps, and iteratively refining its search until it can provide a well-supported answer with citations. This application serves as an example of building research-augmented conversational AI using LangGraph and Google's Gemini models.
+> A research-augmented AI assistant using Google Gemini, LangGraph, and FastAPI – now with added features, improved UX, and multimodal support 🚀
+
+## 🧠 What is This?
+
+This is a **fork and upgrade** of [google-gemini/gemini-fullstack-langgraph-quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart), originally built to demonstrate how LangGraph agents can do iterative search and synthesis using Gemini models.
+
+My goal is to **extend it into a production-level AI research assistant** with added features, richer prompts, and new use cases like file-based search and developer-oriented tools.
 
 <img src="./app.png" title="Gemini Fullstack LangGraph" alt="Gemini Fullstack LangGraph" width="90%">
 
-## Features
+## ✨ Enhanced Features
+
+### 🎯 **New UI Features**
+- ✅ **Enhanced Welcome Screen** – Tabbed interface with Templates and File Analysis
+- ✅ **Prompt Templates** – Pre-configured smart prompts for different research needs
+  - Market Research Analysis
+  - Technical Deep Dive
+  - Data Analysis & Insights
+  - Quick Summary
+  - Innovation & Future Trends
+  - Comparative Analysis
+- ✅ **Dark Mode Toggle** – Built-in theme switching
+- ✅ **Mode Switcher** – Toggle between Classic and Enhanced interfaces
+
+### 🧩 **Backend Enhancements**
+- ✅ **Document Processing Infrastructure** – Support for PDF, DOCX, CSV, images, and text files
+- ✅ **Enhanced State Management** – Extended LangGraph state for file processing and sessions
+- ✅ **Structured Analysis** – AI-powered document analysis with key insights extraction
+
+### 🔜 **Coming Soon**
+- [ ] **Live File Upload** – Frontend integration for document upload
+- [ ] **Context-Aware Chat** – Keep memory across multi-turn conversations
+- [ ] **Saved Sessions** – Save and restore past chats
+- [ ] **Tool Expansion** – YouTube/Reddit/News API search tools
+- [ ] **Multimodal Gemini Input** – Image upload and question-answering
+- [ ] **Visual Flow UI** – Real-time LangGraph process visualization
+- [ ] **LangSmith Tracing** – Full observability for development and debugging
+
+---
+
+## 🔍 How It Works (Enhanced Flow)
+
+1. **User selects a prompt template or enters custom query**
+2. **Optional: Upload documents for context-aware analysis**
+3. **Gemini processes documents and generates search keywords**
+4. **Google Search tool fetches relevant links**
+5. **Gemini reflects on results, incorporating document insights**
+6. **Agent loops back if needed for additional research**
+7. **Final synthesis combines web research with document analysis**
+
+---
+
+## 🧪 Try It Locally
+
+```bash
+# Backend
+cd backend
+pip install -e .
+cp .env.example .env  # Add your GEMINI_API_KEY here
+
+# Frontend  
+cd ../frontend
+npm install --force  # Force install to resolve version conflicts
+npm run dev  # Runs on http://localhost:5173
+
+# Backend (separate terminal)
+cd backend
+langgraph dev  # Runs on http://localhost:2024
+```
+
+## 📋 Original Features
 
 - 💬 Fullstack application with a React frontend and LangGraph backend.
 - 🧠 Powered by a LangGraph agent for advanced research and conversational AI.
@@ -47,7 +113,7 @@ pip install .
 
 ```bash
 cd frontend
-npm install
+npm install --force  # Use --force to resolve dependency conflicts
 ```
 
 **3. Run Development Servers:**
@@ -68,10 +134,11 @@ The core of the backend is a LangGraph agent defined in `backend/src/agent/graph
 <img src="./agent.png" title="Agent Flow" alt="Agent Flow" width="50%">
 
 1.  **Generate Initial Queries:** Based on your input, it generates a set of initial search queries using a Gemini model.
-2.  **Web Research:** For each query, it uses the Gemini model with the Google Search API to find relevant web pages.
-3.  **Reflection & Knowledge Gap Analysis:** The agent analyzes the search results to determine if the information is sufficient or if there are knowledge gaps. It uses a Gemini model for this reflection process.
-4.  **Iterative Refinement:** If gaps are found or the information is insufficient, it generates follow-up queries and repeats the web research and reflection steps (up to a configured maximum number of loops).
-5.  **Finalize Answer:** Once the research is deemed sufficient, the agent synthesizes the gathered information into a coherent answer, including citations from the web sources, using a Gemini model.
+2.  **Document Processing (New):** If files are uploaded, processes them to extract insights and context.
+3.  **Web Research:** For each query, it uses the Gemini model with the Google Search API to find relevant web pages.
+4.  **Reflection & Knowledge Gap Analysis:** The agent analyzes the search results to determine if the information is sufficient or if there are knowledge gaps. It uses a Gemini model for this reflection process.
+5.  **Iterative Refinement:** If gaps are found or the information is insufficient, it generates follow-up queries and repeats the web research and reflection steps (up to a configured maximum number of loops).
+6.  **Finalize Answer:** Once the research is deemed sufficient, the agent synthesizes the gathered information into a coherent answer, including citations from the web sources, using a Gemini model.
 
 ## CLI Example
 
@@ -84,6 +151,25 @@ cd backend
 python examples/cli_research.py "What are the latest trends in renewable energy?"
 ```
 
+## 🎨 Enhanced UI Features
+
+### Prompt Templates
+The enhanced interface includes six pre-configured templates:
+
+- **Market Research Analysis** (High Effort) - Comprehensive market analysis with data points
+- **Technical Deep Dive** (Medium Effort) - Detailed technical explanations with examples  
+- **Data Analysis & Insights** (High Effort) - Statistical analysis and actionable recommendations
+- **Quick Summary** (Low Effort) - Concise overviews of any topic
+- **Innovation & Future Trends** (High Effort) - Cutting-edge developments and predictions
+- **Comparative Analysis** (Medium Effort) - Side-by-side comparisons with pros/cons
+
+### Document Processing
+Upload and analyze various file types:
+- **PDF Documents** - Extract and analyze text content
+- **Word Documents** - Process DOCX files
+- **CSV Data** - Statistical analysis and insights
+- **Images** - Metadata extraction (OCR coming soon)
+- **Text Files** - Direct content analysis
 
 ## Deployment
 
@@ -114,6 +200,12 @@ Open your browser and navigate to `http://localhost:8123/app/` to see the applic
 - [Shadcn UI](https://ui.shadcn.com/) - For components.
 - [LangGraph](https://github.com/langchain-ai/langgraph) - For building the backend research agent.
 - [Google Gemini](https://ai.google.dev/models/gemini) - LLM for query generation, reflection, and answer synthesis.
+- **Enhanced Dependencies:**
+  - [Lucide React](https://lucide.dev/) - Modern icon library
+  - [PyPDF2](https://pypdf2.readthedocs.io/) - PDF processing
+  - [python-docx](https://python-docx.readthedocs.io/) - Word document processing
+  - [Pandas](https://pandas.pydata.org/) - Data analysis for CSV files
+  - [Pillow](https://pillow.readthedocs.io/) - Image processing
 
 ## License
 

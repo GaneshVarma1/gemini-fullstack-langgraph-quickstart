@@ -30,6 +30,7 @@ from agent.utils import (
     insert_citation_markers,
     resolve_urls,
 )
+from agent.document_processor import DocumentProcessor
 
 load_dotenv()
 
@@ -39,6 +40,8 @@ if os.getenv("GEMINI_API_KEY") is None:
 # Used for Google Search API
 genai_client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+# Document processor
+document_processor = DocumentProcessor(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Nodes
 def generate_query(state: OverallState, config: RunnableConfig) -> QueryGenerationState:
@@ -265,6 +268,54 @@ def finalize_answer(state: OverallState, config: RunnableConfig):
     }
 
 
+def process_documents(state: OverallState, config: RunnableConfig) -> OverallState:
+    """LangGraph node that processes uploaded documents.
+
+    Analyzes uploaded files and adds the insights to the research context.
+
+    Args:
+        state: Current graph state containing uploaded files
+        config: Configuration for the runnable
+
+    Returns:
+        Dictionary with state update, including document_analysis results
+    """
+    if not state.get("uploaded_files"):
+        return {"document_analysis": []}
+    
+    analysis_results = []
+    
+    # Process each uploaded file
+    for file_info in state["uploaded_files"]:
+        try:
+            # Convert file_info to FileUpload schema
+            from agent.tools_and_schemas import FileUpload
+            file_upload = FileUpload(**file_info)
+            
+            # Process the document (sync call for now, would be async in production)
+            import asyncio
+            analysis = asyncio.run(document_processor.process_file(file_upload))
+            
+            analysis_results.append({
+                "filename": file_upload.filename,
+                "document_type": analysis.document_type,
+                "summary": analysis.summary,
+                "key_insights": analysis.key_insights,
+                "questions_answered": analysis.questions_answered
+            })
+            
+        except Exception as e:
+            analysis_results.append({
+                "filename": file_info.get("filename", "unknown"),
+                "document_type": "ERROR",
+                "summary": f"Failed to process: {str(e)}",
+                "key_insights": ["Processing failed"],
+                "questions_answered": ["Unable to analyze due to error"]
+            })
+    
+    return {"document_analysis": analysis_results}
+
+
 # Create our Agent Graph
 builder = StateGraph(OverallState, config_schema=Configuration)
 
@@ -273,10 +324,16 @@ builder.add_node("generate_query", generate_query)
 builder.add_node("web_research", web_research)
 builder.add_node("reflection", reflection)
 builder.add_node("finalize_answer", finalize_answer)
+builder.add_node("process_documents", process_documents)
 
-# Set the entrypoint as `generate_query`
-# This means that this node is the first one called
-builder.add_edge(START, "generate_query")
+# Set conditional entrypoint: process documents first if they exist, otherwise generate_query
+def should_process_documents(state: OverallState) -> str:
+    """Route to document processing if files are uploaded, otherwise start with query generation."""
+    if state.get("uploaded_files"):
+        return "process_documents"
+    return "generate_query"
+
+builder.add_conditional_edges(START, should_process_documents, ["process_documents", "generate_query"])
 # Add conditional edge to continue with search queries in a parallel branch
 builder.add_conditional_edges(
     "generate_query", continue_to_web_research, ["web_research"]
@@ -287,6 +344,8 @@ builder.add_edge("web_research", "reflection")
 builder.add_conditional_edges(
     "reflection", evaluate_research, ["web_research", "finalize_answer"]
 )
+# Connect document processing to query generation
+builder.add_edge("process_documents", "generate_query")
 # Finalize the answer
 builder.add_edge("finalize_answer", END)
 

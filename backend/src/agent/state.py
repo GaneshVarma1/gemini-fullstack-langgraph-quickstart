@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import TypedDict, Optional, List, Dict, Any
 
 from langgraph.graph import add_messages
 from typing_extensions import Annotated
@@ -19,6 +19,11 @@ class OverallState(TypedDict):
     max_research_loops: int
     research_loop_count: int
     reasoning_model: str
+    # New fields for enhanced features
+    uploaded_files: Annotated[list, operator.add]  # List of uploaded file info
+    document_analysis: Annotated[list, operator.add]  # Document analysis results
+    session_id: Optional[str]  # Current session ID
+    session_title: Optional[str]  # Session title
 
 
 class ReflectionState(TypedDict):
@@ -41,6 +46,12 @@ class QueryGenerationState(TypedDict):
 class WebSearchState(TypedDict):
     search_query: str
     id: str
+
+
+class DocumentProcessingState(TypedDict):
+    file_path: str
+    file_type: str
+    analysis_result: Dict[str, Any]
 
 
 @dataclass(kw_only=True)
